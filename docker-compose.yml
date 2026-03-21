@@ -1,0 +1,21 @@
+services:
+  nemoclaw:
+    container_name: nemoclaw
+    image: shmayro/nemoclaw
+    build: .
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "7681:7681"
+    volumes:
+      - nemoclaw-data:/nemoclaw-data
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - SKIP_ONBOARD=${SKIP_ONBOARD:-}
+      - TTYD_USER=${TTYD_USER:-}
+      - TTYD_PASS=${TTYD_PASS:-}
+
+volumes:
+  nemoclaw-data:
