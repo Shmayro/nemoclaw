@@ -1,0 +1,9 @@
+.git
+.github
+.env
+docs/
+README.md
+LICENSE
+.gitignore
+.dockerignore
+nemoclaw-data/
