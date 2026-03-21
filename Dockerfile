@@ -44,7 +44,16 @@ RUN curl -fsSL -o /usr/bin/ttyd \
 # ── NemoClaw ──
 # NOTE: Pin to a specific version tag when NemoClaw releases stable versions.
 # For now, using latest as NemoClaw is in early preview (alpha, March 2026).
-RUN curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash
+RUN curl -fsSL https://www.nvidia.com/nemoclaw.sh -o /tmp/nemoclaw-install.sh \
+    && sed -i 's/^ *run_onboard$/# run_onboard (skipped - will run at container start)/' /tmp/nemoclaw-install.sh \
+    && bash /tmp/nemoclaw-install.sh \
+    && rm /tmp/nemoclaw-install.sh
+
+# ── Preserve NemoClaw install for volume persistence ──
+# The install script puts source in ~/.nemoclaw/source and npm-links it.
+# We copy the install to /opt/nemoclaw-initial so the entrypoint can
+# seed the persistent volume on first run.
+RUN cp -a /root/.nemoclaw /opt/nemoclaw-initial
 
 # ── Configuration ──
 RUN mkdir -p /nemoclaw-data /var/log/supervisor

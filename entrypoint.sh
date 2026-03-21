@@ -8,10 +8,21 @@ ONBOARDED_FLAG="${NEMOCLAW_DATA}/.onboarded"
 # ── Ensure persistent data directory structure ──
 mkdir -p "${NEMOCLAW_CONFIG_DIR}"
 
+# Seed volume with NemoClaw install on first run
+if [ ! -d "${NEMOCLAW_CONFIG_DIR}/source" ] && [ -d /opt/nemoclaw-initial/source ]; then
+  echo "First run: seeding NemoClaw installation into persistent volume..."
+  cp -a /opt/nemoclaw-initial/* "${NEMOCLAW_CONFIG_DIR}/"
+fi
+
 # Symlink ~/.nemoclaw to persistent volume
-if [ ! -L "$HOME/.nemoclaw" ]; then
+if [ ! -L "$HOME/.nemoclaw" ] || [ "$(readlink "$HOME/.nemoclaw")" != "${NEMOCLAW_CONFIG_DIR}" ]; then
   rm -rf "$HOME/.nemoclaw"
   ln -s "${NEMOCLAW_CONFIG_DIR}" "$HOME/.nemoclaw"
+fi
+
+# Fix npm global link to point to volume
+if [ -d "${NEMOCLAW_CONFIG_DIR}/source" ]; then
+  ln -sfn "${NEMOCLAW_CONFIG_DIR}/source" /usr/lib/node_modules/nemoclaw
 fi
 
 # ── Write ttyd wrapper script (handles optional auth) ──
