@@ -1,0 +1,65 @@
+FROM ubuntu:24.04
+
+LABEL maintainer="shmayro"
+LABEL org.opencontainers.image.source="https://github.com/shmayro/nemoclaw"
+LABEL org.opencontainers.image.description="Plug-and-play NemoClaw (NVIDIA AI Agent) in Docker"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ── System packages ──
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    supervisor \
+    iptables \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Docker CE ──
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc \
+    && chmod a+r /etc/apt/keyrings/docker.asc \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+       https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+       > /etc/apt/sources.list.d/docker.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+       docker-ce docker-ce-cli containerd.io docker-buildx-plugin \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Node.js 22.x ──
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── ttyd (web terminal) ──
+ARG TTYD_VERSION=1.7.7
+RUN curl -fsSL -o /usr/bin/ttyd \
+    "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
+    && chmod +x /usr/bin/ttyd
+
+# ── NemoClaw ──
+# NOTE: Pin to a specific version tag when NemoClaw releases stable versions.
+# For now, using latest as NemoClaw is in early preview (alpha, March 2026).
+RUN curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash
+
+# ── Configuration ──
+RUN mkdir -p /nemoclaw-data /var/log/supervisor
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 7681
+
+VOLUME ["/nemoclaw-data"]
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:7681 || exit 1
+
+STOPSIGNAL SIGTERM
+
+ENTRYPOINT ["/entrypoint.sh"]
