@@ -14,11 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     lsb-release \
     supervisor \
-    iptables \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Docker CE ──
+# ── Docker CLI only (uses host Docker via mounted socket) ──
 RUN install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc \
     && chmod a+r /etc/apt/keyrings/docker.asc \
@@ -26,8 +25,7 @@ RUN install -m 0755 -d /etc/apt/keyrings \
        https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
        > /etc/apt/sources.list.d/docker.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends \
-       docker-ce docker-ce-cli containerd.io docker-buildx-plugin \
+    && apt-get install -y --no-install-recommends docker-ce-cli \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Node.js 22.x ──

@@ -4,10 +4,10 @@ services:
     image: shmayro/nemoclaw
     build: .
     restart: unless-stopped
-    privileged: true
     ports:
       - "7681:7681"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - nemoclaw-data:/nemoclaw-data
     environment:
       - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}

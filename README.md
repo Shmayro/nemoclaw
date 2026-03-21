@@ -8,7 +8,8 @@ Run [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw) with a single command.
 ## Quick Start
 
 ```bash
-docker run -d --privileged -p 7681:7681 \
+docker run -d -p 7681:7681 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -v nemoclaw-data:/nemoclaw-data \
   --name nemoclaw shmayro/nemoclaw
 ```
@@ -24,7 +25,7 @@ nemoclaw onboard
 | Component | Version | Purpose |
 |-----------|---------|---------|
 | Ubuntu | 24.04 | Base OS |
-| Docker CE | Latest | Docker-in-Docker for NemoClaw sandbox |
+| Docker CLI | Latest | Communicates with host Docker via mounted socket |
 | Node.js | 22.x LTS | NemoClaw runtime |
 | NemoClaw | Latest | AI agent framework |
 | ttyd | 1.7.7 | Web-based terminal |
@@ -63,7 +64,8 @@ nemoclaw onboard
 ### With NVIDIA API (free, recommended)
 
 ```bash
-docker run -d --privileged -p 7681:7681 \
+docker run -d -p 7681:7681 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -e NVIDIA_API_KEY=nvapi-xxx \
   -v nemoclaw-data:/nemoclaw-data \
   --name nemoclaw shmayro/nemoclaw
@@ -72,7 +74,8 @@ docker run -d --privileged -p 7681:7681 \
 ### With OpenRouter (Claude, GPT, Gemini, free models)
 
 ```bash
-docker run -d --privileged -p 7681:7681 \
+docker run -d -p 7681:7681 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -e OPENROUTER_API_KEY=sk-or-xxx \
   -v nemoclaw-data:/nemoclaw-data \
   --name nemoclaw shmayro/nemoclaw
@@ -81,7 +84,8 @@ docker run -d --privileged -p 7681:7681 \
 ### With Web Terminal Authentication
 
 ```bash
-docker run -d --privileged -p 7681:7681 \
+docker run -d -p 7681:7681 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   -e NVIDIA_API_KEY=nvapi-xxx \
   -e TTYD_USER=admin -e TTYD_PASS=mysecret \
   -v nemoclaw-data:/nemoclaw-data \
@@ -115,10 +119,9 @@ Your data survives container restarts and upgrades.
 
 ## Security
 
-- **`--privileged` is required** — Docker-in-Docker needs it to run the Docker daemon inside the container. This is standard for DinD setups.
+- **Docker socket is mounted** — The container uses the host's Docker daemon via `/var/run/docker.sock`. This gives the container access to manage Docker on the host. Only run on trusted machines.
 - **Web terminal is unauthenticated by default** — Set `TTYD_USER` and `TTYD_PASS` to enable basic auth.
 - **Do not expose port 7681 to the internet without authentication.**
-- Container runs as root (required for dockerd).
 
 ## Requirements
 
@@ -127,7 +130,7 @@ Your data survives container restarts and upgrades.
 | RAM | 8 GB | 16 GB |
 | Disk | 25 GB | 40 GB |
 | CPU | amd64 | amd64 |
-| Docker | `--privileged` | `--privileged` |
+| Docker | Host Docker socket | Host Docker socket |
 
 ## NemoClaw Commands
 

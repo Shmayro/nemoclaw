@@ -36,33 +36,28 @@ exec /usr/bin/ttyd "${TTYD_ARGS[@]}" /bin/bash -l
 WRAPPER
 chmod +x /usr/bin/ttyd-wrapper.sh
 
-# ── Start supervisord (manages dockerd + ttyd) ──
+# ── Check Docker socket is mounted ──
+if [ ! -S /var/run/docker.sock ]; then
+  echo "============================================"
+  echo "ERROR: Docker socket not found."
+  echo "Mount the host Docker socket into the container."
+  echo ""
+  echo "Usage:"
+  echo "  docker run -d -p 7681:7681 \\"
+  echo "    -v /var/run/docker.sock:/var/run/docker.sock \\"
+  echo "    -v nemoclaw-data:/nemoclaw-data \\"
+  echo "    shmayro/nemoclaw"
+  echo "============================================"
+  exit 1
+fi
+echo "Docker socket detected."
+
+# ── Start supervisord (manages ttyd) ──
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 SUPERVISOR_PID=$!
 
 # ── Graceful shutdown: forward SIGTERM to supervisord ──
 trap "kill $SUPERVISOR_PID; wait $SUPERVISOR_PID; exit 0" SIGTERM SIGINT
-
-# ── Wait for Docker daemon ──
-echo "Waiting for Docker daemon to start..."
-TIMEOUT=30
-ELAPSED=0
-while [ ! -S /var/run/docker.sock ] && [ $ELAPSED -lt $TIMEOUT ]; do
-  sleep 1
-  ELAPSED=$((ELAPSED + 1))
-done
-
-if [ ! -S /var/run/docker.sock ]; then
-  echo "============================================"
-  echo "ERROR: Docker daemon failed to start."
-  echo "Did you forget --privileged?"
-  echo ""
-  echo "Usage:"
-  echo "  docker run -d --privileged -p 7681:7681 shmayro/nemoclaw"
-  echo "============================================"
-  exit 1
-fi
-echo "Docker daemon is ready."
 
 # ── Write API keys to NemoClaw config if provided ──
 if [ -n "${NVIDIA_API_KEY}" ] || [ -n "${OPENROUTER_API_KEY}" ] || [ -n "${OPENAI_API_KEY}" ]; then
