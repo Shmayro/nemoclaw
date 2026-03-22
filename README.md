@@ -8,7 +8,7 @@ Run [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw) with a single command.
 ## Quick Start
 
 ```bash
-docker run -d -p 7681:7681 \
+docker run -d --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v nemoclaw-data:/nemoclaw-data \
   --name nemoclaw shmayro/nemoclaw
@@ -64,7 +64,7 @@ nemoclaw onboard
 ### With NVIDIA API (free, recommended)
 
 ```bash
-docker run -d -p 7681:7681 \
+docker run -d --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e NVIDIA_API_KEY=nvapi-xxx \
   -v nemoclaw-data:/nemoclaw-data \
@@ -74,7 +74,7 @@ docker run -d -p 7681:7681 \
 ### With OpenRouter (Claude, GPT, Gemini, free models)
 
 ```bash
-docker run -d -p 7681:7681 \
+docker run -d --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e OPENROUTER_API_KEY=sk-or-xxx \
   -v nemoclaw-data:/nemoclaw-data \
@@ -84,7 +84,7 @@ docker run -d -p 7681:7681 \
 ### With Web Terminal Authentication
 
 ```bash
-docker run -d -p 7681:7681 \
+docker run -d --network host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e NVIDIA_API_KEY=nvapi-xxx \
   -e TTYD_USER=admin -e TTYD_PASS=mysecret \
@@ -119,6 +119,7 @@ Your data survives container restarts and upgrades.
 
 ## Security
 
+- **Host networking** — The container uses `--network host` so NemoClaw's OpenShell gateway can communicate over localhost. This means ttyd is accessible on port 7681 of your host.
 - **Docker socket is mounted** — The container uses the host's Docker daemon via `/var/run/docker.sock`. This gives the container access to manage Docker on the host. Only run on trusted machines.
 - **Web terminal is unauthenticated by default** — Set `TTYD_USER` and `TTYD_PASS` to enable basic auth.
 - **Do not expose port 7681 to the internet without authentication.**

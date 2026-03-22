@@ -43,7 +43,7 @@ if [ ! -S /var/run/docker.sock ]; then
   echo "Mount the host Docker socket into the container."
   echo ""
   echo "Usage:"
-  echo "  docker run -d -p 7681:7681 \\"
+  echo "  docker run -d --network host \\"
   echo "    -v /var/run/docker.sock:/var/run/docker.sock \\"
   echo "    -v nemoclaw-data:/nemoclaw-data \\"
   echo "    shmayro/nemoclaw"

@@ -4,8 +4,7 @@ services:
     image: shmayro/nemoclaw
     build: .
     restart: unless-stopped
-    ports:
-      - "7681:7681"
+    network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - nemoclaw-data:/nemoclaw-data
