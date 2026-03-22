@@ -58,8 +58,9 @@ RUN cp -a /root/.nemoclaw /opt/nemoclaw-initial
 RUN mkdir -p /nemoclaw-data /var/log/supervisor
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ttyd-wrapper.sh /usr/bin/ttyd-wrapper.sh
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh /usr/bin/ttyd-wrapper.sh
 
 EXPOSE 7681
 

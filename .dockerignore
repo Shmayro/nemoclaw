@@ -1,6 +1,7 @@
 .git
 .github
 .env
+.env.example
 docs/
 README.md
 LICENSE

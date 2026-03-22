@@ -25,48 +25,35 @@ if [ -d "${NEMOCLAW_CONFIG_DIR}/source" ]; then
   ln -sfn "${NEMOCLAW_CONFIG_DIR}/source" /usr/lib/node_modules/nemoclaw
 fi
 
-# ── Write ttyd wrapper script (handles optional auth) ──
-cat > /usr/bin/ttyd-wrapper.sh << 'WRAPPER'
-#!/bin/bash
-TTYD_ARGS=("-p" "7681")
-if [ -n "${TTYD_USER}" ] && [ -n "${TTYD_PASS}" ]; then
-  TTYD_ARGS+=("-c" "${TTYD_USER}:${TTYD_PASS}")
-fi
-exec /usr/bin/ttyd "${TTYD_ARGS[@]}" /bin/bash -l
-WRAPPER
-chmod +x /usr/bin/ttyd-wrapper.sh
-
-# ── Check Docker socket is mounted ──
-if [ ! -S /var/run/docker.sock ]; then
-  echo "============================================"
-  echo "ERROR: Docker socket not found."
-  echo "Mount the host Docker socket into the container."
-  echo ""
-  echo "Usage:"
-  echo "  docker run -d --network host \\"
-  echo "    -v /var/run/docker.sock:/var/run/docker.sock \\"
-  echo "    -v nemoclaw-data:/nemoclaw-data \\"
-  echo "    shmayro/nemoclaw"
-  echo "============================================"
-  exit 1
-fi
-echo "Docker socket detected."
-
-# ── Start supervisord (manages ttyd) ──
+# ── Start supervisord (manages ttyd) first so users can debug via web terminal ──
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &
 SUPERVISOR_PID=$!
 
 # ── Graceful shutdown: forward SIGTERM to supervisord ──
 trap "kill $SUPERVISOR_PID; wait $SUPERVISOR_PID; exit 0" SIGTERM SIGINT
 
+# ── Check Docker socket is mounted ──
+if [ ! -S /var/run/docker.sock ]; then
+  echo "============================================"
+  echo "WARNING: Docker socket not found."
+  echo "NemoClaw requires the host Docker socket."
+  echo ""
+  echo "Usage:"
+  echo "  docker run -d --network host \\"
+  echo "    -v /var/run/docker.sock:/var/run/docker.sock \\"
+  echo "    -v nemoclaw-data:/nemoclaw-data \\"
+  echo "    shmayro/nemoclaw"
+  echo ""
+  echo "Web terminal is still available at http://localhost:7681"
+  echo "============================================"
+else
+  echo "Docker socket detected."
+fi
+
 # ── Write API keys to NemoClaw config if provided ──
 if [ -n "${NVIDIA_API_KEY}" ] || [ -n "${OPENROUTER_API_KEY}" ] || [ -n "${OPENAI_API_KEY}" ]; then
   echo "API key(s) detected, writing to NemoClaw config..."
-  mkdir -p "${NEMOCLAW_CONFIG_DIR}"
   CONFIG_FILE="${NEMOCLAW_CONFIG_DIR}/config.json"
-  # Build config JSON with provided keys
-  # NOTE: This key structure is assumed. Verify against NemoClaw's actual
-  # config schema at runtime. The onboarding wizard may overwrite this file.
   python3 -c "
 import json, os
 config = {}
