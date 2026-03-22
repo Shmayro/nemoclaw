@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsb-release \
     supervisor \
     python3 \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Docker CLI only (uses host Docker via mounted socket) ──
