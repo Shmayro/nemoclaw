@@ -41,6 +41,9 @@ nemoclaw onboard
 | `SKIP_ONBOARD` | Set to `1` to skip onboarding prompt | No |
 | `TTYD_USER` | Username for web terminal auth | No |
 | `TTYD_PASS` | Password for web terminal auth | No |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token from [@BotFather](https://t.me/BotFather) | No |
+| `SANDBOX_NAME` | Sandbox name for Telegram bridge (default: `my-assistant`) | No |
+| `ALLOWED_CHAT_IDS` | Comma-separated Telegram chat IDs to allow | No |
 
 *At least one API key is needed to use NemoClaw. You can provide it at runtime or configure it during onboarding.
 
@@ -133,6 +136,51 @@ Your data survives container restarts and upgrades.
 | CPU | amd64 | amd64 |
 | Docker | Host Docker socket | Host Docker socket |
 
+## Telegram Bot
+
+Connect NemoClaw to Telegram so you can chat with your AI agent from your phone.
+
+### Setup
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather) with `/newbot`
+2. Follow the prompts to create your bot and get a token
+3. Add the token to your `.env` file or pass it as an env var:
+
+```bash
+docker run -d --network host \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e NVIDIA_API_KEY=nvapi-xxx \
+  -e TELEGRAM_BOT_TOKEN=your-bot-token \
+  -v nemoclaw-data:/nemoclaw-data \
+  --name nemoclaw shmayro/nemoclaw
+```
+
+4. Connect to the web terminal at `http://localhost:7681` and run:
+
+```bash
+nemoclaw onboard                    # First time only
+export TELEGRAM_BOT_TOKEN=your-bot-token
+export NVIDIA_API_KEY=nvapi-xxx
+export SANDBOX_NAME=my-assistant
+nemoclaw start
+```
+
+5. Message your bot on Telegram — it responds via the NemoClaw agent!
+
+### Telegram Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather | Yes |
+| `SANDBOX_NAME` | Sandbox to route messages to (default: `my-assistant`) | No |
+| `ALLOWED_CHAT_IDS` | Comma-separated Telegram chat IDs to allow | No |
+
+### Stop the Bridge
+
+```bash
+nemoclaw stop
+```
+
 ## NemoClaw Commands
 
 Once inside the container:
@@ -140,6 +188,9 @@ Once inside the container:
 ```bash
 nemoclaw onboard                    # Initial setup wizard
 nemoclaw my-assistant connect       # Open sandbox shell
+nemoclaw start                      # Start Telegram bridge
+nemoclaw stop                       # Stop services
+nemoclaw status                     # Check service status
 openclaw tui                        # Interactive chat
 openclaw agent --agent main -m "hello"  # CLI message
 openshell term                      # Monitoring TUI

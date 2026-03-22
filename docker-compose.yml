@@ -15,6 +15,9 @@ services:
       - SKIP_ONBOARD=${SKIP_ONBOARD:-}
       - TTYD_USER=${TTYD_USER:-}
       - TTYD_PASS=${TTYD_PASS:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - SANDBOX_NAME=${SANDBOX_NAME:-my-assistant}
+      - ALLOWED_CHAT_IDS=${ALLOWED_CHAT_IDS:-}
 
 volumes:
   nemoclaw-data:
